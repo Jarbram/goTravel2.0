@@ -81,17 +81,22 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 			currentTravel.Destination = strings.TrimSuffix(destination, "\n")
 		}
 
-		//fmt.Printf("Date (Currently %s):", currentTravel.Date)
-		//date, _ := reader.ReadString('\n')
-		//if date != "\n" {
-		//	currentTravel.Date = strings.TrimSuffix(date, "\n")
-		//}
+		fmt.Printf("Date (Currently %s):", currentTravel.Date)
+		date, _ := reader.ReadString('\n')
+		if date != "\n" {
+			newDate, err := time.Parse("2006-01-02 00:00:00+00:00", date)
+			if err != nil {
+				log.Fatalf("We can't convert date: %v", err)
+			}
+			currentTravel.Date = newDate
+		}
 
-		//fmt.Printf("Budget (Currently %s):", currentTravel.Budget)
-		//budget, _ := reader.ReadString('\n')
-		//if budget != "\n" {
-		//	currentTravel.Budget = strings.TrimSuffix(budget, "\n")
-		//}
+		fmt.Printf("Budget (Currently %s):", currentTravel.Budget)
+		budget, _ := reader.ReadString('\n')
+		if budget != "\n" {
+			newBudget, _ := strconv.ParseFloat(budget, 64)
+			currentTravel.Budget = newBudget
+		}
 
 		//If the user presses enter, it will keep the current value. If they write something new, it will be updated in the currentTravel object.
 
@@ -115,7 +120,10 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 		if affected == 1 {
 			fmt.Println("Deleted Travel from database")
 		}
+
 	case 4:
+
+	case 5:
 		fmt.Println("Goodbye!")
 		os.Exit(3)
 	}

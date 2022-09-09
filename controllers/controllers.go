@@ -11,7 +11,8 @@ import (
 	"time"
 
 	"github.com/dixonwille/wmenu"
-	"goTravel2.0/services"
+	"goTravel2.0/database"
+	"goTravel2.0/models"
 )
 
 func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
@@ -43,12 +44,16 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 		if budget != "\n" {
 			budget = strings.TrimSuffix(budget, "\n")
 		}
-		newBudget, err := strconv.ParseFloat(budget, 64)
+		newBudget, _ := strconv.ParseFloat(budget, 64)
 
-		newTravel := services.NewTravel(destination, newDate, newBudget)
+		newTravel := &models.Travel{
+			Destination: destination,
+			Date:        newDate,
+			Budget:      newBudget,
+		}
 		//We read those values into a buffer one by one, then pass it to the AddTravel method
 
-		services.AddTravel(db, newTravel)
+		database.AddTravel(db, newTravel)
 	case 1:
 
 		reader := bufio.NewReader(os.Stdin)
@@ -56,7 +61,7 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 		searchString, _ := reader.ReadString('\n')
 		searchString = strings.TrimSuffix(searchString, "\n")
 		//we will create a variable named people to store our results
-		travel := services.SearchForTravel(db, searchString)
+		travel := database.SearchForTravel(db, searchString)
 
 		//we created another bufio reader. We read the travel you are looking for in the searchString.It is completed with the searchForTravel function
 
@@ -73,7 +78,7 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 		fmt.Print("Enter an id to update: ")
 		updateid, _ := reader.ReadString('\n')
 		//We then look up that ID with getTravelById and store it in currenttarvel.
-		currentTravel := services.GetTravelById(db, updateid)
+		currentTravel := database.GetTravelById(db, updateid)
 		//We then check each value and display the current value while requesting a new value.
 		fmt.Printf("Destination (Currently %s):", currentTravel.Destination)
 		destination, _ := reader.ReadString('\n')
@@ -91,7 +96,7 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 			currentTravel.Date = newDate
 		}
 
-		fmt.Printf("Budget (Currently %s):", currentTravel.Budget)
+		fmt.Printf("Budget (Currently %f):", currentTravel.Budget)
 		budget, _ := reader.ReadString('\n')
 		if budget != "\n" {
 			newBudget, _ := strconv.ParseFloat(budget, 64)
@@ -101,7 +106,7 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 		//If the user presses enter, it will keep the current value. If they write something new, it will be updated in the currentTravel object.
 
 		//We'll create a variable named affected, and call the updatePerson method, and pass the db connect method and the currentTravel object with the new information.
-		affected := services.UpdateTravel(db, currentTravel)
+		affected := database.UpdateTravel(db, currentTravel)
 
 		if affected == 1 {
 			fmt.Println("One row affected")
@@ -115,7 +120,7 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 
 		idToDelete := strings.TrimSuffix(searchString, "\n")
 
-		affected := services.DeleteTravel(db, idToDelete)
+		affected := database.DeleteTravel(db, idToDelete)
 		//This method takes our db object and the id we want to remove and returns affected, which should be 1.
 		if affected == 1 {
 			fmt.Println("Deleted Travel from database")
@@ -123,8 +128,42 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 
 	case 4:
 
+		var pants uint8
+		var shirts uint8
+		reader := bufio.NewReader(os.Stdin)
+
+		fmt.Print("Enter how pants you need for to travel?")
+		fmt.Scanln(&pants, '\n')
+
+		fmt.Print("Enter how shirts you need for to travel?")
+		fmt.Scanln(&shirts, '\n')
+
+		newClothes := &models.Clothes{
+			Pants:  pants,
+			Shirts: shirts,
+		}
+
+		fmt.Print("Enter the travel ID that you want to add your Clothes plans: ")
+		updateid, _ := reader.ReadString('\n')
+
+		database.AddClothes(db, newClothes, updateid)
+
 	case 5:
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Print("Enter the ID you want to delete : ")
+		searchString, _ := reader.ReadString('\n')
+
+		idToDelete := strings.TrimSuffix(searchString, "\n")
+
+		affected := database.DeleteClothes(db, idToDelete)
+		//This method takes our db object and the id we want to remove and returns affected, which should be 1.
+		if affected == 1 {
+			fmt.Println("Deleted Clothes from database")
+		}
+
+	case 6:
 		fmt.Println("Goodbye!")
 		os.Exit(3)
 	}
+
 }

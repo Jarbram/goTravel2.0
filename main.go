@@ -41,7 +41,8 @@ func main() {
 	menu.Option("Update a travel's information", 2, false, nil)
 	menu.Option("Delete a travel by ID", 3, false, nil)
 	menu.Option("Add a clothes plans for your travel", 4, false, nil)
-	menu.Option("Quit Application", 5, false, nil)
+	menu.Option("Delete a clothes by ID", 5, false, nil)
+	menu.Option("Quit Application", 6, false, nil)
 	menuerr := menu.Run()
 
 	if menuerr != nil {

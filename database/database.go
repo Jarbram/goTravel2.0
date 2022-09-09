@@ -43,6 +43,35 @@ func Seed(db *sql.DB) {
 	}
 }
 
+func AddClothes(db *sql.DB, newClothes *models.Clothes) {
+	//We create a new SQL statement, stmt. We use db.Prepare to prepare our insert statement and protect the application from SQL injection.
+
+	stmt, _ := db.Prepare("INSERT INTO clothes (id, pants, shirts) VALUES (?, ?, ?)")
+	//Then we run stmt.Exec with the parameters we want to insert.
+	stmt.Exec(nil, newClothes.Pants, newClothes.Shirts)
+	//Then defer the close method and print our results.
+	defer stmt.Close()
+
+	fmt.Printf("Added  New Clothes to  \n")
+
+}
+
+func GetClothesById(db *sql.DB, ourID string) models.Clothes {
+
+	rows, _ := db.Query("SELECT id, pants, shirts  FROM clothes WHERE id = '" + ourID + "'")
+	defer rows.Close()
+
+	OurClothes := models.Clothes{}
+	//We then create a new travel object and iterate through the row, scanning each value to the object. Once completed, we return it.
+
+	for rows.Next() {
+		rows.Scan(&OurClothes.ID, &OurClothes.Pants, &OurClothes.Shirts)
+	}
+	fmt.Println("this is  the plans clothes that you will add: ", OurClothes)
+	return OurClothes
+
+}
+
 func AddTravel(db *sql.DB, Travel *models.Travel) {
 	//We create a new SQL statement, stmt. We use db.Prepare to prepare our insert statement and protect the application from SQL injection.
 
@@ -113,22 +142,6 @@ func GetTravelById(db *sql.DB, ourID string) models.Travel {
 
 }
 
-func GetClothesById(db *sql.DB, ourID string) models.Clothes {
-
-	rows, _ := db.Query("SELECT id, pants, shirts  FROM clothes WHERE id = '" + ourID + "'")
-	defer rows.Close()
-
-	OurClothes := models.Clothes{}
-	//We then create a new travel object and iterate through the row, scanning each value to the object. Once completed, we return it.
-
-	for rows.Next() {
-		rows.Scan(&OurClothes.ID, &OurClothes.Pants, &OurClothes.Shirts)
-	}
-	fmt.Println("this is  the plans clothes that you will add: ", OurClothes)
-	return OurClothes
-
-}
-
 func UpdateTravel(db *sql.DB, OurTravel models.Travel) int64 {
 
 	stmt, err := db.Prepare("UPDATE travels set destination = ?, date = ?, budget = ? where id = ?")
@@ -148,19 +161,6 @@ func UpdateTravel(db *sql.DB, OurTravel models.Travel) int64 {
 	}
 	//we use a prepared statement and use the values of the passed travel object to execute an UPDATE on the database. We execute the statement and return the affected rows, which should be one.
 	return result
-}
-
-func AddClothes(db *sql.DB, newClothes *models.Clothes) {
-	//We create a new SQL statement, stmt. We use db.Prepare to prepare our insert statement and protect the application from SQL injection.
-
-	stmt, _ := db.Prepare("INSERT INTO clothes (id, pants, shirts) VALUES (?, ?, ?)")
-	//Then we run stmt.Exec with the parameters we want to insert.
-	stmt.Exec(nil, newClothes.Pants, newClothes.Shirts)
-	//Then defer the close method and print our results.
-	defer stmt.Close()
-
-	fmt.Printf("Added  New Clothes to  \n")
-
 }
 
 func DeleteTravel(db *sql.DB, idToDelete string) int64 {

@@ -25,6 +25,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	db.Exec(`PRAGMA foreign_keys = ON;`)
+
 	if *migrate == "yes" {
 		fmt.Println("execute migrations")
 		database.Seed(db)

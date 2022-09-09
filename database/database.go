@@ -13,10 +13,6 @@ type Database struct {
 	Client *sql.DB
 }
 
-func NewDatabase(c *sql.DB) (*Database, error) {
-	return &Database{c}, nil
-}
-
 func (db *Database) Close() {
 	db.Client.Close()
 }
@@ -117,8 +113,6 @@ func GetTravelById(db *sql.DB, ourID string) models.Travel {
 
 }
 
-//we need to process the new travel object and update the database. We'll do it with the updateTravel function:
-
 func UpdateTravel(db *sql.DB, OurTravel models.Travel) int64 {
 
 	stmt, err := db.Prepare("UPDATE travels set destination = ?, date = ?, budget = ? where id = ?")
@@ -140,14 +134,17 @@ func UpdateTravel(db *sql.DB, OurTravel models.Travel) int64 {
 	return result
 }
 
-func AddClothes(db *sql.DB, newClothes *models.Clothes, ourID string) {
+func AddClothes(db *sql.DB, newClothes *models.Clothes) {
 	//We create a new SQL statement, stmt. We use db.Prepare to prepare our insert statement and protect the application from SQL injection.
 
-	stmt, _ := db.Prepare("INSERT INTO clothes (id, pants, shirts) VALUES (?, ?, ?); UPDATE travels SET clothes_id = ? WHERE id ='" + ourID + "'")
+	stmt, _ := db.Prepare("INSERT INTO clothes (id, pants, shirts) VALUES (?, ?, ?)")
 	//Then we run stmt.Exec with the parameters we want to insert.
 	stmt.Exec(nil, newClothes.Pants, newClothes.Shirts)
 	//Then defer the close method and print our results.
 	defer stmt.Close()
+
+	fmt.Print("Added  New Clothes to   \n")
+
 }
 
 func DeleteTravel(db *sql.DB, idToDelete string) int64 {

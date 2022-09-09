@@ -20,6 +20,7 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 	switch opts[0].Value {
 
 	case 0:
+
 		//we use a bufio scanner to read a new travels's
 		reader := bufio.NewReader(os.Stdin)
 
@@ -54,6 +55,7 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 		//We read those values into a buffer one by one, then pass it to the AddTravel method
 
 		database.AddTravel(db, newTravel)
+
 	case 1:
 
 		reader := bufio.NewReader(os.Stdin)
@@ -70,7 +72,7 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 		for _, ourTravel := range travel {
 			fmt.Printf("\n----\nID: %d\nDestination: %s\nDate: %s\nBudget: %f\n", ourTravel.ID, ourTravel.Destination, ourTravel.Date, ourTravel.Budget)
 		}
-		//We will then loop through the results and display them on the screen.
+
 	case 2:
 
 		//We create another bufio scanner to read in the ID you want to update.
@@ -111,7 +113,7 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 		if affected == 1 {
 			fmt.Println("One row affected")
 		}
-		//If the update is successful, we will return a message to you.
+
 	case 3:
 
 		reader := bufio.NewReader(os.Stdin)
@@ -130,12 +132,11 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 
 		var pants uint8
 		var shirts uint8
-		reader := bufio.NewReader(os.Stdin)
 
-		fmt.Print("Enter how pants you need for to travel?")
+		fmt.Print("Enter how pants you need for to travel? \n")
 		fmt.Scanln(&pants, '\n')
 
-		fmt.Print("Enter how shirts you need for to travel?")
+		fmt.Print("Enter how shirts you need for to travel? \n")
 		fmt.Scanln(&shirts, '\n')
 
 		newClothes := &models.Clothes{
@@ -143,10 +144,7 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 			Shirts: shirts,
 		}
 
-		fmt.Print("Enter the travel ID that you want to add your Clothes plans: ")
-		updateid, _ := reader.ReadString('\n')
-
-		database.AddClothes(db, newClothes, updateid)
+		database.AddClothes(db, newClothes)
 
 	case 5:
 		reader := bufio.NewReader(os.Stdin)

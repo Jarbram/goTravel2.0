@@ -12,7 +12,10 @@ type Travel struct {
 }
 
 type Clothes struct {
-	ID     int64
-	Pants  uint8
-	Shirts uint8
+	ID        int64
+	Underwear uint8
+	Pants     uint8
+	Shirts    uint8
+	TShirts   uint8
+	Shoes     uint8
 }

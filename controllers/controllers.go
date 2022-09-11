@@ -22,8 +22,14 @@ func NewController(service *services.Service) *Controller {
 }
 
 func (c *Controller) AddClothes() {
+	var underwear uint8
 	var pants uint8
 	var shirts uint8
+	var tshirts uint8
+	var shoes uint8
+
+	fmt.Print("Enter how underwear you need for to travel? \n")
+	fmt.Scanln(&underwear, '\n')
 
 	fmt.Print("Enter how pants you need for to travel? \n")
 	fmt.Scanln(&pants, '\n')
@@ -31,9 +37,18 @@ func (c *Controller) AddClothes() {
 	fmt.Print("Enter how shirts you need for to travel? \n")
 	fmt.Scanln(&shirts, '\n')
 
+	fmt.Print("Enter how t-shirts you need for to travel? \n")
+	fmt.Scanln(&tshirts, '\n')
+
+	fmt.Print("Enter how shoes you need for to travel? \n")
+	fmt.Scanln(&shoes, '\n')
+
 	newClothes := &models.Clothes{
-		Pants:  pants,
-		Shirts: shirts,
+		Underwear: underwear,
+		Pants:     pants,
+		Shirts:    shirts,
+		TShirts:   tshirts,
+		Shoes:     shoes,
 	}
 
 	c.service.AddClothes(newClothes)
@@ -71,6 +86,9 @@ func (c *Controller) AddTravel() {
 	clothes_id = strings.TrimSuffix(clothes_id, "\n")
 
 	newClothes, err := c.service.GetClothesById(clothes_id)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	newTravel := &models.Travel{
 		Destination: destination,

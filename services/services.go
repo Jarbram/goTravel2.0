@@ -17,10 +17,19 @@ func NewService(database *database.Database) *Service {
 }
 
 func (s *Service) AddClothes(Clothes *models.Clothes) error {
+	if Clothes.Underwear <= 0 {
+		return errors.New("this field cannot be empty or less than 0")
+	}
 	if Clothes.Pants <= 0 {
 		return errors.New("this field cannot be empty or less than 0")
 	}
 	if Clothes.Shirts <= 0 {
+		return errors.New("this field cannot be empty or less than 0")
+	}
+	if Clothes.TShirts <= 0 {
+		return errors.New("this field cannot be empty or less than 0")
+	}
+	if Clothes.Shoes <= 0 {
 		return errors.New("this field cannot be empty or less than 0")
 	}
 	s.database.AddClothes(Clothes)

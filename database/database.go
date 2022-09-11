@@ -25,7 +25,7 @@ func (db *Database) Close() {
 
 func (d *Database) Seed() {
 	query := `
-	CREATE TABLE IF NOT EXISTS  "travels"  (
+	CREATE TABLE IF NOT EXISTS  "travels"(
 		"id"	INTEGER,
 		"destination"	TEXT,
 		"date"	TEXT,
@@ -36,8 +36,11 @@ func (d *Database) Seed() {
 	);
 	CREATE TABLE IF NOT EXISTS "clothes"(
 		"id" INTEGER,
+		"underwear" INTEGER,
 		"pants" INTEGER,
 		"shirts" INTEGER,
+		"tshirts" INTEGER,
+		"shoes" INTEGER,
 		"travels_id" INTEGER,
 		PRIMARY KEY("id" AUTOINCREMENT),
 		FOREIGN KEY("travels_id") REFERENCES travels(id)
@@ -52,9 +55,9 @@ func (d *Database) Seed() {
 func (d *Database) AddClothes(newClothes *models.Clothes) {
 	//We create a new SQL statement, stmt. We use db.Prepare to prepare our insert statement and protect the application from SQL injection.
 
-	stmt, _ := d.Client.Prepare("INSERT INTO clothes (id, pants, shirts) VALUES (?, ?, ?)")
+	stmt, _ := d.Client.Prepare("INSERT INTO clothes (id, underwear, pants, shirts, tshirts, shoes) VALUES (?, ?, ?, ?, ?, ?)")
 	//Then we run stmt.Exec with the parameters we want to insert.
-	result, err := stmt.Exec(nil, newClothes.Pants, newClothes.Shirts)
+	result, err := stmt.Exec(nil, newClothes.Underwear, newClothes.Pants, newClothes.Shirts, newClothes.TShirts, newClothes.Shoes)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -74,30 +77,30 @@ func (d *Database) AddClothes(newClothes *models.Clothes) {
 
 func (d *Database) GetClothesById(ourID string) models.Clothes {
 
-	rows, _ := d.Client.Query("SELECT id, pants, shirts  FROM clothes WHERE id = '" + ourID + "'")
+	rows, _ := d.Client.Query("SELECT id,underwear, pants, shirts, tshirts, shoes  FROM clothes WHERE id = '" + ourID + "'")
 	defer rows.Close()
 
-	OurClothes := models.Clothes{}
+	ourClothes := models.Clothes{}
 	//We then create a new travel object and iterate through the row, scanning each value to the object. Once completed, we return it.
 
 	for rows.Next() {
-		rows.Scan(&OurClothes.ID, &OurClothes.Pants, &OurClothes.Shirts)
+		rows.Scan(&ourClothes.ID, &ourClothes.Underwear, &ourClothes.Pants, &ourClothes.Shirts, &ourClothes.TShirts, &ourClothes.Shoes)
 	}
 
-	return OurClothes
+	return ourClothes
 
 }
 
-func (d *Database) AddTravel(Travel *models.Travel) {
+func (d *Database) AddTravel(travel *models.Travel) {
 	//We create a new SQL statement, stmt. We use db.Prepare to prepare our insert statement and protect the application from SQL injection.
 
 	stmt, _ := d.Client.Prepare("INSERT INTO travels (id, destination, date, budget, clothes_id) VALUES (?, ?, ?, ?, ?)")
 	//Then we run stmt.Exec with the parameters we want to insert.
-	stmt.Exec(nil, Travel.Destination, Travel.Date, Travel.Budget, Travel.Clothes.ID)
+	stmt.Exec(nil, travel.Destination, travel.Date, travel.Budget, travel.Clothes.ID)
 	//Then defer the close method and print our results.
 	defer stmt.Close()
 
-	fmt.Printf("Added  New travel to  %v \n", Travel.Destination)
+	fmt.Printf("Added  New travel to  %v \n", travel.Destination)
 }
 
 func (d *Database) SearchForTravel(searchString string) []models.Travel {

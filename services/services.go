@@ -28,16 +28,14 @@ func (s *Service) AddClothes(Clothes *models.Clothes) error {
 	return nil
 }
 
-func (s *Service) GetClothesById(ourID string) (models.Clothes, error) {
+func (s *Service) GetClothesById(ourID string) (*models.Clothes, error) {
 	if ourID == "" {
-		return models.Clothes{}, nil
-	} else {
-		errors.New("this field cannot be empty or less to 0")
+		return nil, errors.New("this field cannot be empty or less")
 	}
 
 	result := s.database.GetClothesById(ourID)
 
-	return result, nil
+	return &result, nil
 
 }
 
@@ -48,8 +46,8 @@ func (s *Service) AddTravel(Travel *models.Travel) error {
 	}
 	now := time.Now()
 
-	validate := now.Before(Travel.Date)
-	if validate == true {
+	isNotValid := now.Before(Travel.Date)
+	if isNotValid {
 		return errors.New("you can't alter the sacred timeline")
 	}
 	if Travel.Budget <= 0 {
@@ -62,11 +60,8 @@ func (s *Service) AddTravel(Travel *models.Travel) error {
 }
 
 func (s *Service) SearchForTravel(searchString string) ([]models.Travel, error) {
-	travel := make([]models.Travel, 0)
 	if len(searchString) <= 0 {
-		return travel, nil
-	} else {
-		errors.New("this field cannot be empty or less")
+		return nil, errors.New("this field cannot be empty or less")
 	}
 
 	currentTravel := s.database.SearchForTravel(searchString)
@@ -75,20 +70,19 @@ func (s *Service) SearchForTravel(searchString string) ([]models.Travel, error) 
 
 }
 
-func (s *Service) GetTravelById(ourID string) (models.Travel, error) {
+func (s *Service) GetTravelById(ourID string) (*models.Travel, error) {
 	if ourID == "" {
-		return models.Travel{}, nil
-	} else {
-		errors.New("this field cannot be empty or less to 0")
+		return nil, errors.New("this field cannot be empty or less to 0")
 	}
 
 	result := s.database.GetTravelById(ourID)
 
-	return result, nil
+	return &result, nil
 
 }
 
 func (s *Service) UpdateTravel(OurTravel models.Travel) int64 {
+
 	result := s.database.UpdateTravel(OurTravel)
 	return result
 }

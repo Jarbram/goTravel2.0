@@ -2,8 +2,10 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"goTravel2.0/models"
@@ -52,11 +54,21 @@ func (d *Database) AddClothes(newClothes *models.Clothes) {
 
 	stmt, _ := d.Client.Prepare("INSERT INTO clothes (id, pants, shirts) VALUES (?, ?, ?)")
 	//Then we run stmt.Exec with the parameters we want to insert.
-	stmt.Exec(nil, newClothes.Pants, newClothes.Shirts)
+	result, err := stmt.Exec(nil, newClothes.Pants, newClothes.Shirts)
+	if err != nil {
+		log.Fatal(err)
+	}
+	lastId, err := result.LastInsertId()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	newLastId := strconv.Itoa(int(lastId))
+	clothes := d.GetClothesById(newLastId)
 	//Then defer the close method and print our results.
 	defer stmt.Close()
 
-	fmt.Printf("Added  New Clothes to  \n")
+	fmt.Printf("Added  New Clothes to %+v\n", clothes)
 
 }
 
@@ -71,7 +83,7 @@ func (d *Database) GetClothesById(ourID string) models.Clothes {
 	for rows.Next() {
 		rows.Scan(&OurClothes.ID, &OurClothes.Pants, &OurClothes.Shirts)
 	}
-	fmt.Println("this is  the plans clothes that you will add: ", OurClothes)
+
 	return OurClothes
 
 }
@@ -135,18 +147,27 @@ func (d *Database) GetTravelById(ourID string) models.Travel {
 	rows, _ := d.Client.Query("SELECT id, destination, date, budget  FROM travels WHERE id = '" + ourID + "'")
 	defer rows.Close()
 
-	OurTravel := models.Travel{}
+	ourTravel := models.Travel{}
 	//We then create a new travel object and iterate through the row, scanning each value to the object. Once completed, we return it.
 
 	for rows.Next() {
-		rows.Scan(&OurTravel.ID, &OurTravel.Destination, &OurTravel.Date, &OurTravel.Budget)
+		rows.Scan(&ourTravel.ID, &ourTravel.Destination, &ourTravel.AuxDate, &ourTravel.Budget)
 	}
-	fmt.Println("this user you will edit: ", OurTravel)
-	return OurTravel
+
+	newDate, err := time.Parse("2006-01-02 00:00:00+00:00", ourTravel.AuxDate)
+	if err != nil {
+		log.Fatalf("We can't convert date: %v", err)
+	}
+
+	ourTravel.Date = newDate
+	ourTravel.AuxDate = ""
+
+	fmt.Println("this user you will edit: ", ourTravel)
+	return ourTravel
 
 }
 
-func (d *Database) UpdateTravel(OurTravel models.Travel) int64 {
+func (d *Database) UpdateTravel(ourTravel models.Travel) int64 {
 
 	stmt, err := d.Client.Prepare("UPDATE travels set destination = ?, date = ?, budget = ? where id = ?")
 	if err != nil {
@@ -154,7 +175,7 @@ func (d *Database) UpdateTravel(OurTravel models.Travel) int64 {
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(OurTravel.Destination, OurTravel.Date, OurTravel.Budget, OurTravel.ID)
+	res, err := stmt.Exec(ourTravel.Destination, ourTravel.Date, ourTravel.Budget, ourTravel.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -199,6 +220,9 @@ func (d *Database) DeleteClothes(idToDelete string) int64 {
 	//It prepares a statement that is DELETE and accepts a parameter for id. That is inserted into stmt.Exec and executed.
 	res, err := stmt.Exec(idToDelete)
 	if err != nil {
+		if err.Error() == "FOREIGN KEY constraint failed" {
+			log.Fatal(errors.New("clothes can't delete because it relate with a travel"))
+		}
 		log.Fatal(err)
 	}
 

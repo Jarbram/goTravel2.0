@@ -124,7 +124,10 @@ func (c *Controller) UpdateTravel() {
 	fmt.Print("Enter an id to update: ")
 	updateid, _ := reader.ReadString('\n')
 	//We then look up that ID with getTravelById and store it in currenttarvel.
-	currentTravel, _ := c.service.GetTravelById(updateid)
+	currentTravel, err := c.service.GetTravelById(updateid)
+	if err != nil {
+		log.Fatal(err)
+	}
 	//We then check each value and display the current value while requesting a new value.
 	fmt.Printf("Destination (Currently %s):", currentTravel.Destination)
 	destination, _ := reader.ReadString('\n')

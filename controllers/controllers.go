@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"bufio"
-	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -11,11 +10,19 @@ import (
 	"time"
 
 	"github.com/dixonwille/wmenu"
-	"goTravel2.0/database"
 	"goTravel2.0/models"
+	"goTravel2.0/services"
 )
 
-func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
+type Controller struct {
+	service *services.Service
+}
+
+func NewController(service *services.Service) *Controller {
+	return &Controller{service}
+}
+
+func (c *Controller) HandleFunc(opts []wmenu.Opt) {
 
 	switch opts[0].Value {
 
@@ -35,7 +42,7 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 			Shirts: shirts,
 		}
 
-		database.AddClothes(db, newClothes)
+		c.service.AddClothes(newClothes)
 
 	case 1:
 
@@ -69,7 +76,7 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 		clothes_id, _ := reader.ReadString('\n')
 		clothes_id = strings.TrimSuffix(clothes_id, "\n")
 
-		newClothes := database.GetClothesById(db, clothes_id)
+		newClothes, err := c.service.GetClothesById(clothes_id)
 
 		newTravel := &models.Travel{
 			Destination: destination,
@@ -79,7 +86,7 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 		}
 		//We read those values into a buffer one by one, then pass it to the AddTravel method
 
-		database.AddTravel(db, newTravel)
+		c.service.AddTravel(newTravel)
 
 	case 2:
 
@@ -88,7 +95,7 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 		searchString, _ := reader.ReadString('\n')
 		searchString = strings.TrimSuffix(searchString, "\n")
 		//we will create a variable named people to store our results
-		travel := database.SearchForTravel(db, searchString)
+		travel, _ := c.service.SearchForTravel(searchString)
 
 		//we created another bufio reader. We read the travel you are looking for in the searchString.It is completed with the searchForTravel function
 
@@ -105,7 +112,7 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 		fmt.Print("Enter an id to update: ")
 		updateid, _ := reader.ReadString('\n')
 		//We then look up that ID with getTravelById and store it in currenttarvel.
-		currentTravel := database.GetTravelById(db, updateid)
+		currentTravel, _ := c.service.GetTravelById(updateid)
 		//We then check each value and display the current value while requesting a new value.
 		fmt.Printf("Destination (Currently %s):", currentTravel.Destination)
 		destination, _ := reader.ReadString('\n')
@@ -133,7 +140,7 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 		//If the user presses enter, it will keep the current value. If they write something new, it will be updated in the currentTravel object.
 
 		//We'll create a variable named affected, and call the updatePerson method, and pass the db connect method and the currentTravel object with the new information.
-		affected := database.UpdateTravel(db, currentTravel)
+		affected := c.service.UpdateTravel(currentTravel)
 
 		if affected == 1 {
 			fmt.Println("One row affected")
@@ -147,7 +154,7 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 
 		idToDelete := strings.TrimSuffix(searchString, "\n")
 
-		affected := database.DeleteTravel(db, idToDelete)
+		affected := c.service.DeleteTravel(idToDelete)
 		//This method takes our db object and the id we want to remove and returns affected, which should be 1.
 		if affected == 1 {
 			fmt.Println("Deleted Travel from database")
@@ -160,7 +167,7 @@ func HandleFunc(db *sql.DB, opts []wmenu.Opt) {
 
 		idToDelete := strings.TrimSuffix(searchString, "\n")
 
-		affected := database.DeleteClothes(db, idToDelete)
+		affected := c.service.DeleteClothes(idToDelete)
 		//This method takes our db object and the id we want to remove and returns affected, which should be 1.
 		if affected == 1 {
 			fmt.Println("Deleted Clothes from database")

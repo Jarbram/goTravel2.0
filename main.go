@@ -10,6 +10,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"goTravel2.0/controllers"
 	"goTravel2.0/database"
+	"goTravel2.0/services"
 )
 
 var migrate *string
@@ -27,16 +28,21 @@ func main() {
 
 	db.Exec(`PRAGMA foreign_keys = ON;`)
 
+	database := database.NewDatabase(db)
+
 	if *migrate == "yes" {
 		fmt.Println("execute migrations")
-		database.Seed(db)
+		database.Seed()
 	}
 	// defer close
-	defer db.Close()
+	defer database.Close()
+
+	service := services.NewService(database)
+	controller := controllers.NewController(service)
 
 	menu := wmenu.NewMenu("Welcome ,What would you like to do?")
 
-	menu.Action(func(opts []wmenu.Opt) error { controllers.HandleFunc(db, opts); return nil })
+	menu.Action(func(opts []wmenu.Opt) error { controller.HandleFunc(opts); return nil })
 
 	menu.Option("Add a clothes plans for your travel", 0, true, nil)
 	menu.Option("Add a new travel", 1, false, nil)

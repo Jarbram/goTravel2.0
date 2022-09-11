@@ -13,11 +13,15 @@ type Database struct {
 	Client *sql.DB
 }
 
+func NewDatabase(db *sql.DB) *Database {
+	return &Database{Client: db}
+}
+
 func (db *Database) Close() {
 	db.Client.Close()
 }
 
-func Seed(db *sql.DB) {
+func (d *Database) Seed() {
 	query := `
 	CREATE TABLE IF NOT EXISTS  "travels"  (
 		"id"	INTEGER,
@@ -37,16 +41,16 @@ func Seed(db *sql.DB) {
 		FOREIGN KEY("travels_id") REFERENCES travels(id)
 	);
 	`
-	_, err := db.Exec(query)
+	_, err := d.Client.Exec(query)
 	if err != nil {
 		log.Fatalf("seed fails: %v", err)
 	}
 }
 
-func AddClothes(db *sql.DB, newClothes *models.Clothes) {
+func (d *Database) AddClothes(newClothes *models.Clothes) {
 	//We create a new SQL statement, stmt. We use db.Prepare to prepare our insert statement and protect the application from SQL injection.
 
-	stmt, _ := db.Prepare("INSERT INTO clothes (id, pants, shirts) VALUES (?, ?, ?)")
+	stmt, _ := d.Client.Prepare("INSERT INTO clothes (id, pants, shirts) VALUES (?, ?, ?)")
 	//Then we run stmt.Exec with the parameters we want to insert.
 	stmt.Exec(nil, newClothes.Pants, newClothes.Shirts)
 	//Then defer the close method and print our results.
@@ -56,9 +60,9 @@ func AddClothes(db *sql.DB, newClothes *models.Clothes) {
 
 }
 
-func GetClothesById(db *sql.DB, ourID string) models.Clothes {
+func (d *Database) GetClothesById(ourID string) models.Clothes {
 
-	rows, _ := db.Query("SELECT id, pants, shirts  FROM clothes WHERE id = '" + ourID + "'")
+	rows, _ := d.Client.Query("SELECT id, pants, shirts  FROM clothes WHERE id = '" + ourID + "'")
 	defer rows.Close()
 
 	OurClothes := models.Clothes{}
@@ -72,10 +76,10 @@ func GetClothesById(db *sql.DB, ourID string) models.Clothes {
 
 }
 
-func AddTravel(db *sql.DB, Travel *models.Travel) {
+func (d *Database) AddTravel(Travel *models.Travel) {
 	//We create a new SQL statement, stmt. We use db.Prepare to prepare our insert statement and protect the application from SQL injection.
 
-	stmt, _ := db.Prepare("INSERT INTO travels (id, destination, date, budget, clothes_id) VALUES (?, ?, ?, ?, ?)")
+	stmt, _ := d.Client.Prepare("INSERT INTO travels (id, destination, date, budget, clothes_id) VALUES (?, ?, ?, ?, ?)")
 	//Then we run stmt.Exec with the parameters we want to insert.
 	stmt.Exec(nil, Travel.Destination, Travel.Date, Travel.Budget, Travel.Clothes.ID)
 	//Then defer the close method and print our results.
@@ -84,11 +88,11 @@ func AddTravel(db *sql.DB, Travel *models.Travel) {
 	fmt.Printf("Added  New travel to  %v \n", Travel.Destination)
 }
 
-func SearchForTravel(db *sql.DB, searchString string) []models.Travel {
+func (d *Database) SearchForTravel(searchString string) []models.Travel {
 
 	//this function that takes the db object and a search string and returns a slice of travel objects (structures).
 
-	rows, err := db.Query("SELECT id, destination, date, budget  FROM travels WHERE destination like '%" + searchString + "%'")
+	rows, err := d.Client.Query("SELECT id, destination, date, budget  FROM travels WHERE destination like '%" + searchString + "%'")
 	//We will execute a SELECT statement to select destination,date,budget based on whether the destination matches our search string.
 	defer rows.Close()
 
@@ -124,11 +128,11 @@ func SearchForTravel(db *sql.DB, searchString string) []models.Travel {
 	return travel
 }
 
-func GetTravelById(db *sql.DB, ourID string) models.Travel {
+func (d *Database) GetTravelById(ourID string) models.Travel {
 
 	fmt.Printf("Value is %v", ourID)
 
-	rows, _ := db.Query("SELECT id, destination, date, budget  FROM travels WHERE id = '" + ourID + "'")
+	rows, _ := d.Client.Query("SELECT id, destination, date, budget  FROM travels WHERE id = '" + ourID + "'")
 	defer rows.Close()
 
 	OurTravel := models.Travel{}
@@ -142,9 +146,9 @@ func GetTravelById(db *sql.DB, ourID string) models.Travel {
 
 }
 
-func UpdateTravel(db *sql.DB, OurTravel models.Travel) int64 {
+func (d *Database) UpdateTravel(OurTravel models.Travel) int64 {
 
-	stmt, err := db.Prepare("UPDATE travels set destination = ?, date = ?, budget = ? where id = ?")
+	stmt, err := d.Client.Prepare("UPDATE travels set destination = ?, date = ?, budget = ? where id = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -163,9 +167,9 @@ func UpdateTravel(db *sql.DB, OurTravel models.Travel) int64 {
 	return result
 }
 
-func DeleteTravel(db *sql.DB, idToDelete string) int64 {
+func (d *Database) DeleteTravel(idToDelete string) int64 {
 	//It takes our db connection and the ID to delete.
-	stmt, err := db.Prepare("DELETE FROM travels where id = ?")
+	stmt, err := d.Client.Prepare("DELETE FROM travels where id = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -185,9 +189,9 @@ func DeleteTravel(db *sql.DB, idToDelete string) int64 {
 
 }
 
-func DeleteClothes(db *sql.DB, idToDelete string) int64 {
+func (d *Database) DeleteClothes(idToDelete string) int64 {
 	//It takes our db connection and the ID to delete.
-	stmt, err := db.Prepare("DELETE FROM Clothes where id = ?")
+	stmt, err := d.Client.Prepare("DELETE FROM Clothes where id = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
